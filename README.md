@@ -11,11 +11,11 @@
 ## Architecture
 ```mermaid
 flowchart LR
-    Internet((WAN)) -->|"NAT/Firewall"| OPN[OPNsense: VLANs + Suricata]
-    OPN -->|"DNS (DoH)"| ADG[AdGuard Home]
-    OPN -->|"Reverse Proxy"| Caddy[Caddy]
+    Internet((WAN)) -->|"NAT/Firewall"| OPN[OPNsense: VLANs and Suricata]
+    OPN -->|"DNS DoH"| ADG[AdGuard Home]
+    OPN -->|"Reverse Proxy"| Caddy[Caddy Server]
     Caddy --> HA[Home Assistant]
     Caddy --> Kuma[Uptime Kuma]
     Kuma --> n8n[n8n Automations]
     OPN -->|"Tailscale"| Tail[Tailscale Subnet Router]
-    OPN --- Canary[OpenCanary (Honeypot)]
+    OPN --> Canary[OpenCanary Honeypot]
