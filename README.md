@@ -18,4 +18,4 @@ flowchart LR
     Caddy --> Kuma[Uptime Kuma]
     Kuma --> n8n[n8n Automations]
     OPN -->|"Tailscale"| Tail[Tailscale Subnet Router]
-    OPN -.mirror.- Canary[OpenCanary (Honeypot)]
+    OPN --- Canary[OpenCanary (Honeypot)]
