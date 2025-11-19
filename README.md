@@ -20,35 +20,144 @@ flowchart LR
     OPN -->|"Tailscale"| Tail[Tailscale Subnet Router]
     OPN --> Canary[OpenCanary Honeypot]
 
-# Sysadmin Homelab
+Homelab Monitoring & Automation Project
 
-This repository documents my homelab, which I use to practice system administration, automation, and monitoring.
+This project is part of my personal homelab, where I’m building real-world systems administration and automation experience. The goal is to monitor my self-hosted services, automate routine tasks, and practice the same workflows used in production environments.
 
-## Phase 1 – Core Infrastructure
+So far, I’ve implemented a fully working monitoring → automation → alerting pipeline using:
 
-**Goal:** Build a small, production-style environment with:
+Uptime Kuma (service monitoring)
 
-- Proxmox hypervisor
-- A dedicated "Services VM" (Ubuntu Server)
-- Docker + Portainer
-- Uptime Kuma for monitoring critical systems
+n8n (workflow automation)
 
-### Current Components
+Discord Webhooks (incident notifications)
 
-- Proxmox VE host (64 GB RAM, NAS storage)
-- `svcs-01` – Ubuntu Server 22.04
-  - Docker + Portainer
-  - Uptime Kuma (port 3001)
+Ubuntu Server + Docker (service hosting)
 
-### Repo Layout
+This system sends me alerts when any monitored service goes down or comes back online. It includes custom parsing logic for Kuma’s webhook format and formats everything into clean, readable notifications.
 
-- `docs/` – Setup and design documentation
-- `docker/` – Docker compose and deployment scripts
-- `screens/` – Screenshots of the setup in action
+🔧 Project Architecture
 
-### Next Steps (Phase 2+)
+Uptime Kuma  →  n8n Webhook  →  Function Node  →  Discord Webhook
 
-- Add AdGuard for DNS filtering and security
-- Add n8n for automation + AI-assisted reports
-- Add Caddy for reverse proxy and SSL
-- Harden SSH and add backups + logging
+Uptime Kuma watches critical services (Proxmox, my services VM, HomeAssistant, etc.).
+
+When anything changes state, Kuma calls a webhook on my n8n VM.
+
+n8n receives the alert, normalizes the JSON payload, and builds a readable message.
+
+A Discord webhook sends the alert to a dedicated channel.
+
+
+🧠 Why I Built This
+
+I want to build real sysadmin experience beyond desktop support:
+
+handling webhooks
+
+automating responses
+
+transforming JSON
+
+managing Dockerized services
+
+writing backup jobs
+
+hardening Linux servers
+
+This project shows that I can build, host, secure, and maintain real infrastructure — and troubleshoot integrations when things don’t go perfectly.
+
+
+📬 Example Alerts
+
+Here’s the type of message that gets pushed to my Discord:
+
+🔔 Uptime Alert
+Monitor: Proxmox
+Status: DOWN
+URL: https://192.168.xx.xx:8006
+Message: Connection timed out
+Time (UTC): 2025-11-19T04:11:15.800Z
+
+
+🧩 n8n Workflow Details
+Webhook → Function Node → Discord
+Function Node (parses Kuma’s JSON format)
+
+const root = $json;
+const body = root.body || {};
+const monitor = body.monitor || {};
+const heartbeat = body.heartbeat || {};
+
+const monitorName =
+  monitor.name ||
+  monitor.friendly_name ||
+  body.monitorName ||
+  'Test Notification';
+
+let rawStatus =
+  heartbeat.status ??
+  body.status ??
+  'info';
+
+let statusText = String(rawStatus).toLowerCase();
+if (statusText === '0') statusText = 'down';
+if (statusText === '1') statusText = 'up';
+if (statusText === '2') statusText = 'pending';
+if (statusText === '3') statusText = 'paused';
+
+const msg =
+  body.msg ||
+  heartbeat.msg ||
+  '';
+
+const url =
+  monitor.url ||
+  monitor.hostname ||
+  body.monitorUrl ||
+  '';
+
+const time = new Date().toISOString();
+
+return [{
+  monitorName,
+  status: statusText,
+  msg,
+  url,
+  time,
+  content: [
+    '🔔 Uptime Alert',
+    `Monitor: ${monitorName}`,
+    `Status: ${statusText.toUpperCase()}`,
+    url ? `URL: ${url}` : '',
+    msg ? `Message: ${msg}` : '',
+    `Time (UTC): ${time}`,
+  ].filter(Boolean).join('\n')
+}];
+
+Files to include:
+
+/automation/n8n/kuma_to_discord.json
+(exported n8n workflow)
+/screens/kuma_alert_example.png
+/screens/n8n_workflow.png
+
+
+🔐 Hardening & Maintenance
+
+As part of treating this like a real production box, I also implemented:
+
+✓ SSH Hardening
+
+– Disabled password authentication
+– Disabled root login
+– Enabled fail2ban
+
+✓ Auto Security Updates
+sudo apt install unattended-upgrades
+
+
+✓ Automated Backups for Kuma & n8n
+
+Nightly cron job:
+0 3 * * * /usr/bin/rsync -a /srv/kuma /backups/kuma && /usr/bin/rsync -a /srv/n8n /backups/n8n
