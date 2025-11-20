@@ -8,197 +8,115 @@
 [![Suricata](https://img.shields.io/badge/IDS%2FIPS-Suricata-red)](#)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
-## Architecture
-```mermaid
-flowchart LR
-    Internet((WAN)) -->|"NAT/Firewall"| OPN[OPNsense: VLANs and Suricata]
-    OPN -->|"DNS DoH"| ADG[AdGuard Home]
-    OPN -->|"Reverse Proxy"| Caddy[Caddy Server]
-    Caddy --> HA[Home Assistant]
-    Caddy --> Kuma[Uptime Kuma]
-    Kuma --> n8n[n8n Automations]
-    OPN -->|"Tailscale"| Tail[Tailscale Subnet Router]
-    OPN --> Canary[OpenCanary Honeypot]
+🚀 Homelab Monitoring & Automation System
 
+A self-hosted project for real-time monitoring, daily automation, and production-style systems administration.
 
-PHASE 1
+🌐 Overview
 
+This project is part of my personal homelab where I practice Linux administration, automation, and monitoring using real infrastructure. The goal is to treat my homelab like a small production environment—complete with alerting, scheduled tasks, log processing, backups, and service health checks.
 
-Homelab Monitoring & Automation Project
+Everything in this repository was built by me on a Proxmox-hosted Ubuntu VM running Docker. I use this environment to learn, automate, and solve problems the same way a Systems Administrator or Cloud Engineer would in a real job.
 
-This project is part of my personal homelab, where I’m building real-world systems administration and automation experience. The goal is to monitor my self-hosted services, automate routine tasks, and practice the same workflows used in production environments.
+🧰 Tech Stack
 
-So far, I’ve implemented a fully working monitoring → automation → alerting pipeline using:
+Infrastructure:
+
+Proxmox
+
+Ubuntu Server
+
+Docker + Docker Compose
+
+Monitoring & Automation:
 
 Uptime Kuma (service monitoring)
 
-n8n (workflow automation)
+n8n (automation/orchestration)
 
-Discord Webhooks (incident notifications)
+Cron + SSH scripts (health checks)
 
-Ubuntu Server + Docker (service hosting)
+Integrations:
 
-This system sends me alerts when any monitored service goes down or comes back online. It includes custom parsing logic for Kuma’s webhook format and formats everything into clean, readable notifications.
+Discord Webhooks (alerting & daily reports)
 
-🔧 Project Architecture
+RSS Feeds (tech news ingestion)
 
-Uptime Kuma  →  n8n Webhook  →  Function Node  →  Discord Webhook
+Security & Reliability:
 
-Uptime Kuma watches critical services (Proxmox, my services VM, HomeAssistant, etc.).
+SSH hardening (no root login, key-based auth, fail2ban)
 
-When anything changes state, Kuma calls a webhook on my n8n VM.
+Unattended security updates
 
-n8n receives the alert, normalizes the JSON payload, and builds a readable message.
+Nightly backup jobs (cron + rsync)
 
-A Discord webhook sends the alert to a dedicated channel.
+🛠️ What This System Does
+1. Real-Time Service Monitoring (Phase 1)
 
+Uptime Kuma monitors my Proxmox host, service VMs, and containers.
 
-🧠 Why I Built This
+Alerts flow into an n8n webhook.
 
-I want to build real sysadmin experience beyond desktop support:
+A Function node normalizes Kuma’s JSON payloads.
 
-handling webhooks
+Alerts are formatted and posted into a private Discord channel.
 
-automating responses
+This gives me real-world experience with incident detection, JSON parsing, and webhook integrations.
 
-transforming JSON
+2. Daily Homelab Report + Motivation (Phase 2)
 
-managing Dockerized services
+Every morning at 8 AM:
 
-writing backup jobs
+n8n connects to my services VM over SSH
 
-hardening Linux servers
+Runs a custom health script that reports:
 
-This project shows that I can build, host, secure, and maintain real infrastructure — and troubleshoot integrations when things don’t go perfectly.
+uptime
 
+disk usage
 
-📬 Example Alerts
+memory usage
 
-Here’s the type of message that gets pushed to my Discord:
+Docker container status
 
-🔔 Uptime Alert
-Monitor: Proxmox
-Status: DOWN
-URL: https://192.168.xx.xx:8006
-Message: Connection timed out
-Time (UTC): 2025-11-19T04:11:15.800Z
+Wraps the results into a Markdown report
 
+Adds a curated motivational video
 
-🧩 n8n Workflow Details
-Webhook → Function Node → Discord
-Function Node (parses Kuma’s JSON format)
+Sends the report to Discord
 
-const root = $json;
-const body = root.body || {};
-const monitor = body.monitor || {};
-const heartbeat = body.heartbeat || {};
+This simulates the daily operational checks a SysAdmin might perform before the workday starts.
 
-const monitorName =
-  monitor.name ||
-  monitor.friendly_name ||
-  body.monitorName ||
-  'Test Notification';
+3. Daily Tech News Digest (Phase 2)
 
-let rawStatus =
-  heartbeat.status ??
-  body.status ??
-  'info';
+At 8:05 AM:
 
-let statusText = String(rawStatus).toLowerCase();
-if (statusText === '0') statusText = 'down';
-if (statusText === '1') statusText = 'up';
-if (statusText === '2') statusText = 'pending';
-if (statusText === '3') statusText = 'paused';
+n8n reads a tech RSS feed (Ars Technica Technology Lab)
 
-const msg =
-  body.msg ||
-  heartbeat.msg ||
-  '';
+Selects the latest 3 articles
 
-const url =
-  monitor.url ||
-  monitor.hostname ||
-  body.monitorUrl ||
-  '';
+Formats them with title, timestamp, and link
 
-const time = new Date().toISOString();
+Sends a clean summary to Discord
 
-return [{
-  monitorName,
-  status: statusText,
-  msg,
-  url,
-  time,
-  content: [
-    '🔔 Uptime Alert',
-    `Monitor: ${monitorName}`,
-    `Status: ${statusText.toUpperCase()}`,
-    url ? `URL: ${url}` : '',
-    msg ? `Message: ${msg}` : '',
-    `Time (UTC): ${time}`,
-  ].filter(Boolean).join('\n')
-}];
+This keeps me updated and demonstrates automation of external data ingestion.
 
-Files to include:
+📸 Screenshots
 
-/automation/n8n/kuma_to_discord.json
-(exported n8n workflow)
-/screens/kuma_alert_example.png
-/screens/n8n_workflow.png
+(Screenshots live inside the /screens folder.)
 
+n8n workflow overviews
 
-🔐 Hardening & Maintenance
+Function node logic
 
-As part of treating this like a real production box, I also implemented:
+Example alerts from Discord
 
-✓ SSH Hardening
+Kuma dashboard
 
-– Disabled password authentication
-– Disabled root login
-– Enabled fail2ban
+SSH hardening config
 
-✓ Auto Security Updates
-sudo apt install unattended-upgrades
+Backup cron job
 
+These help visualize exactly how the system works.
 
-✓ Automated Backups for Kuma & n8n
-
-Nightly cron job:
-0 3 * * * /usr/bin/rsync -a /srv/kuma /backups/kuma && /usr/bin/rsync -a /srv/n8n /backups/n8n
-
-
-PHASE 2
-
-
-##Daily Automation & Tech News
-
-In addition to real-time alerts, I built two daily automations that run in my homelab:
-
-1. **Daily Homelab Health Report + Morning Motivation**
-2. **Top 3 Tech News Articles**
-
-Both workflows run in n8n on my services VM and post into a Discord channel I check every morning.
-
-### Daily Homelab Health + Motivation
-
-This workflow runs a small shell script over SSH to collect:
-
-- Hostname and timestamp  
-- System uptime  
-- Root filesystem disk usage  
-- Memory usage  
-- Number of running Docker containers  
-
-The script output is passed into an n8n Function node, which wraps it in a nicely formatted message and appends a random “morning motivation” YouTube video from a curated list. The final report is sent to a Discord channel via webhook.
-
-### Morning Tech News
-
-A second n8n workflow runs shortly after the health report.
-
-- Reads an RSS feed from a tech news site (currently Ars Technica technology)  
-- Takes the **latest 3 articles**  
-- Formats the title, publication time, and URL into a short message  
-- Sends the summary into the same Discord channel
-
-Together, these automations give me a quick view of my homelab’s status and what’s happening in the tech world before I start the day.
-
+📂 Project Structure
