@@ -1,0 +1,93 @@
+{
+  "name": "Security Alerts (SSH Intrusion Detection)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "security-alert",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "202fecaa-4594-4241-a2cb-489c3adbb188",
+      "name": "Webhook",
+      "webhookId": "ada8c66e-12e8-4586-aefb-c52ccfd0b102"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Support both: direct JSON and { body: {...} }\nconst src = $json.body || $json;\n\nconst type   = src.type || \"unknown\";\nconst user   = src.user || \"unknown\";\nconst ip     = src.ip   || \"unknown\";\nconst log    = src.log  || \"\";\nconst count  = src.count || \"\";\nconst window = src.window || \"\";\n\n// GeoIP fields\nconst country = src.country || \"\";\nconst region  = src.region  || \"\";\nconst city    = src.city    || \"\";\nconst isp     = src.isp     || \"\";\n\nlet title = \"\";\nlet emoji = \"\";\n\nif (type === \"failed_login\") {\n  title = \"Failed SSH login attempt\";\n  emoji = \"🚨\";\n} else if (type === \"successful_login\") {\n  title = \"Successful SSH login\";\n  emoji = \"⚠️\";\n} else if (type === \"invalid_user\") {\n  title = \"Invalid user login attempt\";\n  emoji = \"🚫\";\n} else if (type === \"bruteforce_attempt\") {\n  title = \"Possible SSH brute-force attack detected\";\n  emoji = \"🔥\";\n} else {\n  title = \"Unknown security event\";\n  emoji = \"❓\";\n}\n\nconst time = new Date().toISOString();\n\nlet lines = [];\nlines.push(`${emoji} ${title}`);\nlines.push(`User: ${user}`);\nlines.push(`IP: ${ip}`);\n\n// Build a human-friendly location line\nif (country || region || city || isp) {\n  const locParts = [];\n  if (city)   locParts.push(city);\n  if (region) locParts.push(region);\n  if (country) locParts.push(country);\n  const locStr = locParts.join(\", \");\n\n  if (locStr) {\n    lines.push(`Location: ${locStr}`);\n  }\n  if (isp) {\n    lines.push(`ISP: ${isp}`);\n  }\n} else {\n  // No GeoIP info available\n  lines.push(`GeoIP: not available (private IP or lookup failed)`);\n}\n\nif (type === \"bruteforce_attempt\") {\n  lines.push(`Attempts in last window: ${count}`);\n  lines.push(`Window (seconds): ${window}`);\n}\n\nlines.push(\"\");\nlines.push(\"Log line:\");\nif (log) {\n  lines.push(\"```\");\n  lines.push(log);\n  lines.push(\"```\");\n} else {\n  lines.push(\"(no log line provided)\");\n}\nlines.push(`Time (UTC): ${time}`);\n\nreturn [{\n  content: lines.join(\"\\n\")\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "32613442-20d0-4a4e-b6a4-f05aaf2abd77",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discordapp.com/api/webhooks/1440472318865445079/1qb3I9nv2yTJYOqtDYvVdXU3k9Nu63EVNeSd0NC0o_rGo_fEvfCqCaTafZbjhueaSjrn",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{$json.content}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "6616834e-83a2-492a-af93-cfe6f36e966d",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "139aaaf3-3aca-4f1a-9204-d3b07f6c16ff",
+  "meta": {
+    "instanceId": "dd336f63449417bf84c3ce149d98dfde122a2416d5bdc59b60f90d49cbb1701a"
+  },
+  "id": "8PMHpeTMbLPsnLXZ",
+  "tags": []
+}
