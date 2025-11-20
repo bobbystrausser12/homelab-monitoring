@@ -20,6 +20,10 @@ flowchart LR
     OPN -->|"Tailscale"| Tail[Tailscale Subnet Router]
     OPN --> Canary[OpenCanary Honeypot]
 
+
+PHASE 1
+
+
 Homelab Monitoring & Automation Project
 
 This project is part of my personal homelab, where I’m building real-world systems administration and automation experience. The goal is to monitor my self-hosted services, automate routine tasks, and practice the same workflows used in production environments.
@@ -161,3 +165,40 @@ sudo apt install unattended-upgrades
 
 Nightly cron job:
 0 3 * * * /usr/bin/rsync -a /srv/kuma /backups/kuma && /usr/bin/rsync -a /srv/n8n /backups/n8n
+
+
+PHASE 2
+
+
+##Daily Automation & Tech News
+
+In addition to real-time alerts, I built two daily automations that run in my homelab:
+
+1. **Daily Homelab Health Report + Morning Motivation**
+2. **Top 3 Tech News Articles**
+
+Both workflows run in n8n on my services VM and post into a Discord channel I check every morning.
+
+### Daily Homelab Health + Motivation
+
+This workflow runs a small shell script over SSH to collect:
+
+- Hostname and timestamp  
+- System uptime  
+- Root filesystem disk usage  
+- Memory usage  
+- Number of running Docker containers  
+
+The script output is passed into an n8n Function node, which wraps it in a nicely formatted message and appends a random “morning motivation” YouTube video from a curated list. The final report is sent to a Discord channel via webhook.
+
+### Morning Tech News
+
+A second n8n workflow runs shortly after the health report.
+
+- Reads an RSS feed from a tech news site (currently Ars Technica technology)  
+- Takes the **latest 3 articles**  
+- Formats the title, publication time, and URL into a short message  
+- Sends the summary into the same Discord channel
+
+Together, these automations give me a quick view of my homelab’s status and what’s happening in the tech world before I start the day.
+
