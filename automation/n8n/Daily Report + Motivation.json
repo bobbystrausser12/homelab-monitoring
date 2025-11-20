@@ -1,0 +1,129 @@
+{
+  "name": "Daily Report + Motivation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "65714011-f8ae-49d8-a5bb-8d88e7e3f29f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "/usr/local/bin/homelab-health.sh"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "54f17c8c-1880-4840-9e06-f95329e18295",
+      "name": "Execute a command",
+      "credentials": {
+        "sshPrivateKey": {
+          "id": "2o1sVIJ1rSDTKKBv",
+          "name": "SSH Private Key account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw health report text from SSH node\nconst sshOutput = $json.stdout || $json.output || 'No health data';\n\n// Morning motivation videos (feel free to add/remove your favorites)\nconst videos = [\n  \"https://www.youtube.com/watch?v=p79lX4HyABA\", // Listen to this every morning and conquer the day :contentReference[oaicite:0]{index=0}\n  \"https://www.youtube.com/watch?v=b-Pn0yXL9y8\", // 5 Minutes to Start Your Day Right :contentReference[oaicite:1]{index=1}\n  \"https://www.youtube.com/watch?v=10OsHPkgGF4\", // 4AM Morning Motivation :contentReference[oaicite:2]{index=2}\n  \"https://www.youtube.com/watch?v=e6S6mvm6wXk\", // Morning Motivation | Start Your Day Right :contentReference[oaicite:3]{index=3}\n  \"https://www.youtube.com/watch?v=sFeprOWWjVU\"  // The Power of Gratitude (Best Morning Motivation) :contentReference[oaicite:4]{index=4}\n];\n\nconst randomIndex = Math.floor(Math.random() * videos.length);\nconst video = videos[randomIndex];\n\nconst today = new Date().toISOString().split(\"T\")[0];\n\nconst message = [\n  `📅 Daily Homelab Report — ${today}`,\n  \"\",\n  \"==== System Health ====\",\n  \"```\",\n  sshOutput.trim(),\n  \"```\",\n  \"\",\n  \"==== Daily Motivation ====\",\n  `▶ ${video}`\n].join(\"\\n\");\n\nreturn [{\n  content: message\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "58513c1f-acef-470b-8665-d819b8bc7568",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/1440918112315637904/JPo5ephnEdMojQchXaQX7SZEbi-yyiIBp2_33xNgt8fax77aaMbF_0uCkXZT6DK5g-bP",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{$json.content}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "63e6495c-4f0b-47e7-8790-18063bfc6c4e",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute a command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a command": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6bb300b8-bf9c-4962-941d-458d36a2e86a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dd336f63449417bf84c3ce149d98dfde122a2416d5bdc59b60f90d49cbb1701a"
+  },
+  "id": "i9SQE7VT8C6HkF8a",
+  "tags": []
+}
