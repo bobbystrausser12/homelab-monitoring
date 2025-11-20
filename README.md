@@ -11,10 +11,14 @@
 🚀 Homelab Monitoring & Automation System
 A self-hosted project for real-time monitoring, daily automation, and production-style systems administration.
 
+
+
 🌐 Overview
 This project is part of my personal homelab where I practice Linux administration, automation, and monitoring using real infrastructure. The goal is to treat my homelab like a small production environment—complete with alerting, scheduled tasks, log processing, backups, and service health checks.
 
 Everything in this repository was built by me on a Proxmox-hosted Ubuntu VM running Docker. I use this environment to learn, automate, and solve problems the same way a Systems Administrator or Cloud Engineer would in a real job.
+
+
 
 🧰 Tech Stack
 Infrastructure:
@@ -35,6 +39,8 @@ Security & Reliability:
   SSH hardening (no root login, key-based auth, fail2ban)
   Unattended security updates
   Nightly backup jobs (cron + rsync)
+
+
 
 🛠️ What This System Does
 1. Real-Time Service Monitoring (Phase 1)
@@ -75,8 +81,9 @@ This keeps me updated and demonstrates automation of external data ingestion.
   Backup cron job
 These help visualize exactly how the system works.
 
-📂 Project Structure
 
+
+📂 Project Structure
 docs/
   ├─ architecture-overview.md
   ├─ uptime-kuma-webhooks.md
@@ -101,6 +108,8 @@ screens/
   ├─ discord/
   └─ server/
 
+
+
 🎯 Why I Built This
 I’m working toward a full-time Systems Administrator / Cloud Support / Security role.
 This homelab lets me:
@@ -118,6 +127,7 @@ Weekly uptime report (aggregate from Kuma’s API)
 Backup verification workflow
 Add Home Assistant metrics
 Container resource dashboards (Grafana/Prometheus)
+
 
 
 📬 Contact
