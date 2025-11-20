@@ -133,3 +133,19 @@ Container resource dashboards (Grafana/Prometheus)
 📬 Contact
 
 If you have tips, want to collaborate, or have feedback, feel free to open an issue or reach out on LinkedIn.
+
+
+
+### 4. Phase 3 – Security Monitoring & Intrusion Detection
+
+To practice security operations in a realistic way, I added a lightweight host-based intrusion detection pipeline on my services VM.
+
+This pipeline:
+
+- Watches `/var/log/auth.log` in real time.
+- Detects failed SSH logins, successful logins, and invalid user attempts.
+- Tracks repeated failures per IP in a sliding 5-minute window to flag possible brute-force attacks.
+- Enriches each event with GeoIP data (country, region, city, ISP) when available.
+- Sends structured JSON alerts into n8n, which formats them and pushes human-readable security alerts to a Discord channel.
+
+This simulates the kind of basic detection and alerting that a SOC or SysAdmin team would rely on for SSH hardening and early-stage intrusion detection.
