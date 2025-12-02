@@ -1,6 +1,6 @@
-# Homelab Monitoring & SecOps
+# 🔒 Homelab Monitoring, Automation & Zero-Trust Networking
 
-> OPNsense-segmented network with IDS/IPS, DNS egress control, monitoring, self-healing automations, and a mini honeypot—built on Proxmox + Portainer.
+A production-style homelab featuring global DNS filtering, zero-trust access, monitoring, SecOps alerting, self-healing automations, VLAN-ready segmentation, and full internal HTTPS—built on Proxmox, TailScale, AdGuard Home, and Docker.
 
 [![Status Page](https://img.shields.io/badge/Uptime-Status%20Page-informational)](#) 
 [![n8n](https://img.shields.io/badge/Automation-n8n-blue)](#)
@@ -8,144 +8,305 @@
 [![Suricata](https://img.shields.io/badge/IDS%2FIPS-Suricata-red)](#)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
-🚀 Homelab Monitoring & Automation System
-A self-hosted project for real-time monitoring, daily automation, and production-style systems administration.
+## 🚀 Project Overview
+
+This repository documents my end-to-end homelab infrastructure, where I practice:
+
+Linux systems administration
+
+Network design & segmentation
+
+DNS architecture & HTTPS
+
+Zero-trust VPN access
+
+Monitoring & alerting
+
+Automation & scripting
+
+SecOps & intrusion detection
+
+Everything is deployed on Proxmox with Ubuntu/Debian-based VMs and Docker containers orchestrated via Portainer. My goal is to treat this homelab like a mini production environment, with real alerting pipelines, fault tolerance, and security controls.
+
+## 🧰 Tech Stack
+Infrastructure
+
+Proxmox (virtualization)
+
+Ubuntu Server / Debian
+
+Docker + Docker Compose
+
+Portainer
+
+Networking & Security
+
+TailScale (mesh VPN, MagicDNS, subnet routing)
+
+AdGuard Home (DNS filtering, rewrites, DoH)
+
+Caddy (reverse proxy + internal PKI)
+
+OPNsense (firewall, IDS/IPS, DNS egress rules)
+
+Suricata (network intrusion detection)
+
+Monitoring & Automation
+
+Uptime Kuma (availability monitoring)
+
+n8n (automation/orchestration)
+
+Cron + SSH Automation Scripts
+
+Integrations
+
+Discord Webhooks (alerting + daily reports)
+
+RSS Feeds (tech news ingestion)
+
+GeoIP enrichment
+
+## 🏗️ Architecture Overview
+
+flowchart LR
+    subgraph ClientDevices["Remote Clients"]
+        L1["Laptop (TailScale)"]
+        P1["Phone (TailScale)"]
+    end
+
+    subgraph TailScale["TailScale Mesh Network"]
+        TS["MagicDNS + Zero-Trust Routing"]
+    end
+
+    subgraph DC["Proxmox Homelab"]
+        AG["AdGuard Home<br>DNS + Ad Blocking"]
+        RP["Caddy Reverse Proxy<br>Local HTTPS + PKI"]
+        N8N["n8n Automations"]
+        KUMA["Uptime Kuma"]
+        PORT["Portainer"]
+        HA["Home Assistant"]
+    end
+
+    L1 --> TS --> AG
+    P1 --> TS --> AG
+
+    AG --> RP
+    RP --> N8N
+    RP --> KUMA
+    RP --> PORT
+    RP --> HA
+
+## 🌐 Global DNS, Zero-Trust Access & Internal HTTPS (NEW)
+
+I deployed a secure global DNS and HTTPS infrastructure using TailScale, AdGuard, and Caddy. This allows me to securely access all homelab services from anywhere in the world—work, mobile hotspot, public WiFi—without exposing a single port to the internet.
+
+## 🔐 Features
+
+Zero-trust remote access (no port forwards, fully private network)
+
+Global DNS filtering through AdGuard over TailScale
+
+MagicDNS + custom .lab internal domains
+
+https://n8n.lab
+
+https://kuma.lab
+
+https://portainer.lab
+
+https://ha.lab
+
+Caddy internal certificate authority for trusted HTTPS
+
+DNS rewrites to internal service IPs
+
+Subnet routing from TailScale → Proxmox → LAN
+
+## 🧠 Technical Achievements
+
+Configured AdGuard to bind on all interfaces (0.0.0.0) for TailScale DNS resolution
+
+Implemented TailScale DNS override + MagicDNS to route .lab domains globally
+
+Built a dedicated reverse proxy VM with Caddy using internal CA:
+
+tls internal
+reverse_proxy 192.168.50.X:PORT
+
+Installed local CA trust on Linux client to eliminate HTTPS warnings
+
+Ensured full DNS resilience even when switching networks (hotspot, work WiFi, home LAN)
+
+This section alone demonstrates networking, VPN, DNS, PKI, and reverse proxy expertise—highly valuable for SysAdmin, DevOps, and Security roles.
 
 
+## 🛠️ Functional Components
+Phase 1 — Real-Time Availability Monitoring
 
-🌐 Overview
-This project is part of my personal homelab where I practice Linux administration, automation, and monitoring using real infrastructure. The goal is to treat my homelab like a small production environment—complete with alerting, scheduled tasks, log processing, backups, and service health checks.
+Uptime Kuma monitors:
 
-Everything in this repository was built by me on a Proxmox-hosted Ubuntu VM running Docker. I use this environment to learn, automate, and solve problems the same way a Systems Administrator or Cloud Engineer would in a real job.
+Proxmox host
 
+VMs and Docker services
 
+Internal applications
 
-🧰 Tech Stack
-Infrastructure:
-  Proxmox
-  Ubuntu Server
-  Docker + Docker Compose
+Alerts are sent to n8n via webhook for processing
 
-Monitoring & Automation:
-  Uptime Kuma (service monitoring)
-  n8n (automation/orchestration)
-  Cron + SSH scripts (health checks)
+n8n formats alerts and sends them to a private Discord channel
 
-Integrations:
-  Discord Webhooks (alerting & daily reports)
-  RSS Feeds (tech news ingestion)
+Skills demonstrated: JSON handling, webhooks, REST APIs, incident detection.
 
-Security & Reliability:
-  SSH hardening (no root login, key-based auth, fail2ban)
-  Unattended security updates
-  Nightly backup jobs (cron + rsync)
+Phase 2 — Daily Homelab Ops Report + Motivation
 
+Every morning at 6:20 AM:
 
+n8n SSHes into the server
 
-🛠️ What This System Does
-1. Real-Time Service Monitoring (Phase 1)
-  Uptime Kuma monitors my Proxmox host, service VMs, and containers.
-  Alerts flow into an n8n webhook.
-  A Function node normalizes Kuma’s JSON payloads.
-  Alerts are formatted and posted into a private Discord channel.
-This gives me real-world experience with incident detection, JSON parsing, and webhook integrations.
+Runs a custom health script:
 
-2. Daily Homelab Report + Motivation (Phase 2)
-Every morning at 8 AM:
-  n8n connects to my services VM over SSH
-  Runs a custom health script that reports:
-    uptime
-    disk usage
-    memory usage
-    Docker container status
-  Wraps the results into a Markdown report
-  Adds a curated motivational video
-  Sends the report to Discord
-This simulates the daily operational checks a SysAdmin might perform before the workday starts.
+uptime
 
-3. Daily Tech News Digest (Phase 2)
+memory + disk usage
+
+container status
+
+Formats results into Markdown
+
+Adds a motivational video
+
+Sends it to Discord
+
+Skills demonstrated: automation, scripting, remote execution, n8n workflow design.
+
+Phase 2 — Daily Tech News Digest
+
 At 8:05 AM:
-  n8n reads a tech RSS feed (Ars Technica Technology Lab)
-  Selects the latest 3 articles
-  Formats them with title, timestamp, and link
-  Sends a clean summary to Discord
-This keeps me updated and demonstrates automation of external data ingestion.
+
+n8n consumes an RSS feed (Ars Technica)
+
+Parses the latest 3 articles
+
+Formats a clean summary for Discord
+
+Skills demonstrated: API ingestion, automation pipelines, data parsing.
+
+Phase 3 — Security Monitoring & Intrusion Detection
+
+Implemented a lightweight host-based intrusion detection system:
+
+Watches /var/log/auth.log in real time
+
+Detects:
+
+failed SSH attempts
+
+successful logins
+
+invalid users
+
+Tracks repeated failures to identify brute-force attempts
+
+Enriches events with GeoIP data
+
+Sends structured JSON security alerts through n8n → Discord
+
+Skills demonstrated: log analysis, security monitoring, alerting pipelines, SecOps fundamentals.
 
 📸 Screenshots
-(Screenshots live inside the /screens folder.)
-  n8n workflow overviews
-  Function node logic
-  Example alerts from Discord
-  Kuma dashboard
-  SSH hardening config
-  Backup cron job
-These help visualize exactly how the system works.
 
+Located in /screens, including:
 
+n8n workflow UIs
 
-📂 Project Structure
+automation logic (function nodes)
+
+Kuma dashboards
+
+Discord alert examples
+
+server metrics snapshots
+
+## 📂 Repository Structure
+
 docs/
-  ├─ architecture-overview.md
-  ├─ uptime-kuma-webhooks.md
-  ├─ n8n-workflow-explained.md
-  ├─ daily-report-automation.md
-  ├─ morning-tech-news.md
-  ├─ ssh-hardening.md
-  ├─ backup-strategy.md
-  └─ troubleshooting.md
+  architecture-overview.md
+  uptime-kuma-webhooks.md
+  n8n-workflow-explained.md
+  daily-report-automation.md
+  morning-tech-news.md
+  ssh-hardening.md
+  backup-strategy.md
+  troubleshooting.md
 
 scripts/
-  └─ homelab-health.sh
+  homelab-health.sh
 
-automation/
-  └─ n8n/
-       ├─ daily_report_and_motivation.json
-       └─ morning_tech_news.json
+automation/n8n/
+  daily_report_and_motivation.json
+  morning_tech_news.json
 
 screens/
-  ├─ n8n/
-  ├─ kuma/
-  ├─ discord/
-  └─ server/
+  n8n/
+  kuma/
+  discord/
+  server/
 
+## 🎯 Why I Built This
 
+I’m working toward a career in:
 
-🎯 Why I Built This
-I’m working toward a full-time Systems Administrator / Cloud Support / Security role.
-This homelab lets me:
-  Build real-world automation
-  Practice monitoring and alerting
-  Work with JSON, APIs, webhooks, and scripting
-  Learn Dockerized service hosting
-  Harden Linux servers
-  Build documentation and workflows
-  Debug issues end-to-end
-Everything here mirrors the responsibilities of an entry-level SysAdmin or Cloud engineer.
+Systems Administration
 
-💡 Future Improvements
-Weekly uptime report (aggregate from Kuma’s API)
-Backup verification workflow
-Add Home Assistant metrics
-Container resource dashboards (Grafana/Prometheus)
+DevOps / Cloud Engineering
 
+Security Engineering / SecOps
 
+This homelab helps me practice:
 
-📬 Contact
+Monitoring & alerting
 
-If you have tips, want to collaborate, or have feedback, feel free to open an issue or reach out on LinkedIn.
+Network design & VPNs
 
+DNS & PKI
 
+Reverse proxying
 
-### 4. Phase 3 – Security Monitoring & Intrusion Detection
+Linux hardening
 
-To practice security operations in a realistic way, I added a lightweight host-based intrusion detection pipeline on my services VM.
+Infrastructure automation
 
-This pipeline:
+Real troubleshooting
 
-- Watches `/var/log/auth.log` in real time.
-- Detects failed SSH logins, successful logins, and invalid user attempts.
-- Tracks repeated failures per IP in a sliding 5-minute window to flag possible brute-force attacks.
-- Enriches each event with GeoIP data (country, region, city, ISP) when available.
-- Sends structured JSON alerts into n8n, which formats them and pushes human-readable security alerts to a Discord channel.
+Documentation & workflows
 
-This simulates the kind of basic detection and alerting that a SOC or SysAdmin team would rely on for SSH hardening and early-stage intrusion detection.
+Everything mirrors the responsibilities of a junior–mid sysadmin or cloud engineer in production.
+
+## 🧭 Future Enhancements
+
+Grafana + Prometheus container resource dashboards
+
+Weekly uptime reports generated from Kuma API
+
+Automated backup integrity verification
+
+Add metrics for Home Assistant
+
+Expand TailScale / OPNsense segmentation with VLANs
+
+## 📬 Contact
+
+If you’d like to collaborate, suggest improvements, or chat about homelabs, feel free to open an issue or message me on LinkedIn.
+
+## ⭐ Final Notes for Recruiters
+
+This project demonstrates hands-on experience with:
+
+✔ Linux system administration
+✔ Networking & zero-trust architecture
+✔ DNS, HTTPS, PKI, and reverse proxying
+✔ Monitoring & automation pipelines
+✔ Security alerting & log analysis
+✔ Proxmox virtualization
+✔ Dockerized service hosting
