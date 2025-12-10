@@ -1,0 +1,122 @@
+{
+  "name": "Morning Tech News → Discord",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6,
+              "triggerAtMinute": 35
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "eb57c508-932f-4edb-9af0-a51ad59442ae",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.arstechnica.com/arstechnica/technology-lab",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4072e192-44c0-407c-9309-bcbfdcbb4f18",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n regular Function node receives multiple items in \"items\"\nconst allItems = items; // all input items from RSS node\nconst top = allItems.slice(0, 3); // get first 3 articles\n\nconst today = new Date().toISOString().split(\"T\")[0];\n\nlet lines = [];\nlines.push(`📰 Top Tech News — ${today}`);\nlines.push(\"\");\nlines.push(\"Here are the latest articles from Ars Technica:\");\nlines.push(\"\");\n\n// Loop through the top 3\ntop.forEach((item, index) => {\n  const data = item.json;\n  const title = data.title || \"Untitled Article\";\n  const link = data.link || \"\";\n  const date = data.pubDate || data.isoDate || \"\";\n\n  lines.push(`${index + 1}. **${title}**`);\n  if (date) lines.push(`   🕒 ${date}`);\n  if (link) lines.push(`   🔗 ${link}`);\n  lines.push(\"\"); // blank line after each entry\n});\n\nreturn [\n  {\n    json: {\n      content: lines.join(\"\\n\")\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "1c4d404f-0917-4a8d-89ab-17e14530b60e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/1440918112315637904/JPo5ephnEdMojQchXaQX7SZEbi-yyiIBp2_33xNgt8fax77aaMbF_0uCkXZT6DK5g-bP",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{$json.content}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "d5126755-9e5d-4392-9dec-03c613d058be",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "19aec8f0-15dd-49c1-9f40-aaa6e1c4a8fa",
+  "meta": {
+    "instanceId": "dd336f63449417bf84c3ce149d98dfde122a2416d5bdc59b60f90d49cbb1701a"
+  },
+  "id": "T4teXrV6Gkn6QeGK",
+  "tags": []
+}
