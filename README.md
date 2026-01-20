@@ -283,6 +283,14 @@ Documentation & workflows
 
 Everything mirrors the responsibilities of a junior–mid sysadmin or cloud engineer in production.
 
+🚧 Upcoming: Kubernetes Migration
+
+    Deploying a k3s High-Availability Cluster on Proxmox.
+
+    Migrating stateless applications (Whoami, Caddy) from Docker Compose to Kubernetes Manifests/Helm Charts.
+
+    Implementing GitOps (using ArgoCD) to automate deployments from this repo.
+
 ## 🧭 Future Enhancements
 
 Grafana + Prometheus container resource dashboards
