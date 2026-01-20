@@ -283,7 +283,7 @@ Documentation & workflows
 
 Everything mirrors the responsibilities of a junior–mid sysadmin or cloud engineer in production.
 
-🚧 Upcoming: Kubernetes Migration
+## 🚧 Upcoming: Kubernetes Migration
 
     Deploying a k3s High-Availability Cluster on Proxmox.
 
